@@ -17,12 +17,14 @@ headers = {
 # Global flag to stop the loop
 stop_flag = False
 
-# File paths (change these paths as needed in Termux)
-token_file_path = '/path/to/tokens.txt'  # Path to your token file
-message_file_path = '/path/to/messages.txt'  # Path to your message file
-thread_id = 'your_thread_id'  # Facebook thread ID where comments are posted
-hater_name = 'Prefix'  # Name/Prefix to add before the message
-speed = 5  # Delay in seconds between messages
+# Use environment variables for file paths
+token_file_path = os.getenv("TOKEN_FILE_PATH")
+message_file_path = os.getenv("MESSAGE_FILE_PATH")
+
+# Facebook thread ID and other static variables
+thread_id = 'your_thread_id'  # Replace with your actual thread ID
+hater_name = 'Prefix'  # Replace with the desired prefix
+speed = 5  # Delay in seconds between each message
 
 def send_messages(thread_id, hater_name, time_interval, messages, tokens):
     global stop_flag
@@ -46,6 +48,11 @@ def send_messages(thread_id, hater_name, time_interval, messages, tokens):
 
 def main():
     global stop_flag
+
+    # Check if the environment variables are set
+    if not token_file_path or not message_file_path:
+        print("❌ ERROR: TOKEN_FILE_PATH or MESSAGE_FILE_PATH environment variable not set.")
+        return
 
     # Read messages from file
     if not os.path.exists(message_file_path):
