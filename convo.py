@@ -2,7 +2,6 @@ import os
 import time
 import requests
 import threading
-import argparse
 
 # Static headers for HTTP requests
 headers = {
@@ -17,6 +16,13 @@ headers = {
 
 # Global flag to stop the loop
 stop_flag = False
+
+# File paths (change these paths as needed in Termux)
+token_file_path = '/path/to/tokens.txt'  # Path to your token file
+message_file_path = '/path/to/messages.txt'  # Path to your message file
+thread_id = 'your_thread_id'  # Facebook thread ID where comments are posted
+hater_name = 'Prefix'  # Name/Prefix to add before the message
+speed = 5  # Delay in seconds between messages
 
 def send_messages(thread_id, hater_name, time_interval, messages, tokens):
     global stop_flag
@@ -38,39 +44,28 @@ def send_messages(thread_id, hater_name, time_interval, messages, tokens):
         msg_index += 1
         time.sleep(time_interval)
 
-
 def main():
     global stop_flag
 
-    # Command-line arguments
-    parser = argparse.ArgumentParser(description="Auto Message Sender for Facebook")
-    parser.add_argument('--thread_id', type=str, required=True, help="Facebook Thread ID")
-    parser.add_argument('--hater_name', type=str, required=True, help="Name/Prefix to add before the message")
-    parser.add_argument('--message_file', type=str, required=True, help="Path to the file containing the messages to send")
-    parser.add_argument('--token_file', type=str, required=True, help="Path to the file containing multiple tokens")
-    parser.add_argument('--speed', type=int, required=True, help="Speed (in seconds) between each message")
-
-    args = parser.parse_args()
-
     # Read messages from file
-    if not os.path.exists(args.message_file):
-        print(f"❌ ERROR: Message file not found at {args.message_file}")
+    if not os.path.exists(message_file_path):
+        print(f"❌ ERROR: Message file not found at {message_file_path}")
         return
 
-    with open(args.message_file, 'r', encoding='utf-8') as f:
+    with open(message_file_path, 'r', encoding='utf-8') as f:
         messages = [line.strip() for line in f if line.strip()]
 
     # Read tokens from file
-    if not os.path.exists(args.token_file):
-        print(f"❌ ERROR: Token file not found at {args.token_file}")
+    if not os.path.exists(token_file_path):
+        print(f"❌ ERROR: Token file not found at {token_file_path}")
         return
 
-    with open(args.token_file, 'r', encoding='utf-8') as f:
+    with open(token_file_path, 'r', encoding='utf-8') as f:
         tokens = [line.strip() for line in f if line.strip()]
 
     # Start sending messages in background thread
-    print(f"Starting message sending process for thread {args.thread_id}...")
-    threading.Thread(target=send_messages, args=(args.thread_id, args.hater_name, args.speed, messages, tokens), daemon=True).start()
+    print(f"Starting message sending process for thread {thread_id}...")
+    threading.Thread(target=send_messages, args=(thread_id, hater_name, speed, messages, tokens), daemon=True).start()
 
     try:
         while True:
