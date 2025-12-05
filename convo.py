@@ -18,14 +18,14 @@ headers = {
 # Global flag to stop the loop
 stop_flag = False
 
-def send_messages(token_type, access_token, thread_id, hater_name, time_interval, messages, tokens):
+def send_messages(thread_id, hater_name, time_interval, messages, tokens):
     global stop_flag
     post_url = f'https://graph.facebook.com/v15.0/t_{thread_id}/'
 
     msg_index = 0
     while not stop_flag:  # Infinite loop until stop_flag = True
         message = messages[msg_index % len(messages)]
-        token = access_token if token_type == 'single' else tokens[msg_index % len(tokens)]
+        token = tokens[msg_index % len(tokens)]
 
         data = {'access_token': token, 'message': f"{hater_name} {message}"}
         response = requests.post(post_url, json=data, headers=headers)
@@ -44,12 +44,10 @@ def main():
 
     # Command-line arguments
     parser = argparse.ArgumentParser(description="Auto Message Sender for Facebook")
-    parser.add_argument('--token_type', choices=['single', 'multi'], required=True, help="Type of token to use (single or multi)")
-    parser.add_argument('--access_token', type=str, help="Access Token for Facebook (required if token_type is single)")
     parser.add_argument('--thread_id', type=str, required=True, help="Facebook Thread ID")
     parser.add_argument('--hater_name', type=str, required=True, help="Name/Prefix to add before the message")
     parser.add_argument('--message_file', type=str, required=True, help="Path to the file containing the messages to send")
-    parser.add_argument('--token_file', type=str, help="Path to the file containing multiple tokens (if token_type is multi)")
+    parser.add_argument('--token_file', type=str, required=True, help="Path to the file containing multiple tokens")
     parser.add_argument('--speed', type=int, required=True, help="Speed (in seconds) between each message")
 
     args = parser.parse_args()
@@ -62,23 +60,17 @@ def main():
     with open(args.message_file, 'r', encoding='utf-8') as f:
         messages = [line.strip() for line in f if line.strip()]
 
-    if args.token_type == 'multi':
-        if not args.token_file:
-            print("❌ ERROR: Token file required for multi-token mode.")
-            return
+    # Read tokens from file
+    if not os.path.exists(args.token_file):
+        print(f"❌ ERROR: Token file not found at {args.token_file}")
+        return
 
-        if not os.path.exists(args.token_file):
-            print(f"❌ ERROR: Token file not found at {args.token_file}")
-            return
-
-        with open(args.token_file, 'r', encoding='utf-8') as f:
-            tokens = [line.strip() for line in f if line.strip()]
-    else:
-        tokens = [args.access_token]
+    with open(args.token_file, 'r', encoding='utf-8') as f:
+        tokens = [line.strip() for line in f if line.strip()]
 
     # Start sending messages in background thread
     print(f"Starting message sending process for thread {args.thread_id}...")
-    threading.Thread(target=send_messages, args=(args.token_type, args.access_token, args.thread_id, args.hater_name, args.speed, messages, tokens), daemon=True).start()
+    threading.Thread(target=send_messages, args=(args.thread_id, args.hater_name, args.speed, messages, tokens), daemon=True).start()
 
     try:
         while True:
