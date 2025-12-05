@@ -6,7 +6,7 @@ import sys
 BANNER = """
 =============================================
       FACEBOOK AUTO COMMENTER (TERMUX)
-      CREATED BY RAAJVEER BOSS
+      CREATED BY PRIME MENTAWL <3
 =============================================
 """
 
